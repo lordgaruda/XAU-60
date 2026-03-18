@@ -214,23 +214,30 @@ symbols:
 timeframe: M15
 magic_number: 123456
 
+# Strategy-specific parameters (non-sensitive)
 parameters:
   my_param: 10
   another_param: 2.5
 
+# Risk settings for this strategy
 risk:
   max_risk_percent: 2.0
   lot_size: 0.01
 
+# Trading session (hours in UTC)
 session:
   start_hour: 8
   end_hour: 18
   trade_friday: false
 
+# Enable/disable alerts for this strategy
+# (Credentials are in .env file, not here!)
 alerts:
   telegram: true
   discord: false
 ```
+
+**Note:** Strategy YAML files contain only non-sensitive parameters. All credentials (MT5 login, Telegram tokens, Discord webhooks) must be configured in the `.env` file.
 
 ### Step 3: Done!
 
