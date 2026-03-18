@@ -1,324 +1,343 @@
-# XAUUSD SMC Auto Scalper - Complete Setup Guide
+# MT5 Trading Bot
 
-**Advanced Smart Money Concepts Scalping Strategy for MetaTrader 5**
+A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web interface. Designed for fast strategy development and deployment.
 
-## **Strategy Overview**
+## Features
 
-This EA implements a sophisticated XAUUSD scalping strategy based on Smart Money Concepts with **BIDIRECTIONAL TRADING**:
+- **Modular Strategy System** - Add new strategies by creating a Python file + YAML config
+- **Multi-Symbol Support** - Trade XAUUSD, EURUSD, GBPUSD, and more simultaneously
+- **Smart Money Concepts** - Built-in CHoCH, FVG, Order Block detection
+- **Backtesting Engine** - Test strategies on historical data with detailed metrics
+- **Risk Management** - Position sizing, daily loss limits, max drawdown protection
+- **Real-time Alerts** - Telegram and Discord notifications
+- **Web UI** - Streamlit dashboard for monitoring and configuration
 
-### **BUY Setup:**
-1. **Detects Bullish CHoCH** (Change of Character) on M15 timeframe
-2. **Identifies Bullish Fair Value Gaps** (FVG) in market structure
-3. **Enters LONG at FVG mid-line** with precision timing
-4. **Exits at Bearish Order Blocks** above entry or via Risk/Reward ratio
-5. **Uses Trailing Stop Loss** for maximum profit capture
+## Project Structure
 
-### **SELL Setup:**
-1. **Detects Bearish CHoCH** (Change of Character) on M15 timeframe
-2. **Identifies Bearish Fair Value Gaps** (FVG) in market structure
-3. **Enters SHORT at FVG mid-line** with precision timing
-4. **Exits at Bullish Order Blocks** below entry or via Risk/Reward ratio
-5. **Uses Trailing Stop Loss** for maximum profit protection
-
-## **Quick Start Installation**
-
-### Step 1: Download Required Files
 ```
-📁 MQ-Autonomous/
-├── XAUUSD_SMC_Scalper.mq5     (Main EA)
-├── SMC_Indicator_Config.txt    (Indicator settings)
-├── Setup_Guide.md              (This file)
-└── Backtest_Results/           (Performance data)
-```
-
-### Step 2: Install in MetaTrader 5
-1. **Copy EA File**: 
-   - Copy `XAUUSD_SMC_Scalper.mq5` to `MQL5/Experts/` folder
-   - Restart MetaTrader 5
-   - Compile the EA in MetaEditor (F7)
-
-2. **Install SMC Indicator** (Required):
-   - Search "Smart Money Concept" in MQL5 Market
-   - Download and install a reputable SMC indicator
-   - Configure with provided settings below
-
-### Step 3: EA Configuration
-
-#### **Essential Parameters:**
-```
-Symbol: XAUUSD
-TimeFrame: M15
-LotSize: 0.01 (adjust based on account size)
-MagicNumber: 789123
-RiskRewardRatio: 2.0
-UseTrailingStop: true
-TrailingStopDistance: 50.0 pips
+├── main.py                     # Entry point
+├── requirements.txt            # Python dependencies
+├── config/
+│   ├── settings.yaml          # Global settings (MT5, risk, alerts)
+│   └── strategies/            # Strategy configurations
+│       ├── smc_scalper.yaml
+│       ├── trend_break_trauma.yaml
+│       └── crt_tbs.yaml
+├── core/
+│   ├── strategy_base.py       # Abstract Strategy class
+│   ├── mt5_connector.py       # MT5 API wrapper
+│   ├── strategy_loader.py     # Dynamic strategy discovery
+│   ├── risk_manager.py        # Risk calculations
+│   ├── trade_executor.py      # Order execution
+│   └── backtest_engine.py     # Backtesting
+├── strategies/
+│   ├── smc_scalper.py         # SMC Scalper strategy
+│   ├── trend_break_trauma.py  # Trend Break + RSI strategy
+│   └── crt_tbs.py             # CRT + TBS strategy
+├── indicators/
+│   ├── common.py              # RSI, EMA, ATR, etc.
+│   ├── smc_utils.py           # CHoCH, FVG, Order Blocks
+│   └── trend_utils.py         # Trend line detection
+├── alerts/
+│   ├── telegram_bot.py        # Telegram notifications
+│   └── discord_bot.py         # Discord webhooks
+├── ui/
+│   ├── app.py                 # Streamlit main app
+│   └── pages/                 # UI pages
+│       ├── dashboard.py       # Live trading view
+│       ├── strategies.py      # Strategy management
+│       ├── backtest.py        # Backtesting interface
+│       └── settings.py        # Configuration
+└── utils/
+    ├── logger.py              # Logging setup
+    └── helpers.py             # Utility functions
 ```
 
-#### **SMC Detection Settings:**
-```
-CHoCH_LookbackPeriods: 50
-FVG_MinSizePips: 5
-OrderBlock_LookbackPeriods: 20
-FVG_EntryPercent: 50.0
-```
+## Quick Start
 
-#### **Risk Management:**
-```
-MaxRiskPercent: 2.0%
-StopLossPips: 100.0
-UseATRStopLoss: true
-ATR_Period: 14
-ATR_Multiplier: 2.0
-DynamicLotSizing: true (automatically calculated based on risk)
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
 ```
 
-#### **Time Filter:**
-```
-StartHour: 8 (London Open)
-EndHour: 18 (NY Close)
-TradeOnFriday: false
-```
+**Note:** MetaTrader5 package only works on Windows. For other platforms, use the backtesting and UI features.
 
-## **Strategy Logic Flow**
+### 2. Configure MT5 Connection
 
-### Phase 1: Market Structure Analysis (Bidirectional)
-```mermaid
-graph TD
-    A[Monitor M15 XAUUSD] --> B{CHoCH Detected?}
-    B -->|Bullish CHoCH| C[Scan for Bullish FVG]
-    B -->|Bearish CHoCH| C2[Scan for Bearish FVG]
-    B -->|No CHoCH| A
-    C --> D{Valid Bullish FVG?}
-    C2 --> D2{Valid Bearish FVG?}
-    D -->|Yes| E[Locate Bearish Order Block Above]
-    D2 -->|Yes| E2[Locate Bullish Order Block Below]
-    D -->|No| A
-    D2 -->|No| A
-    E --> F{Order Block Confirmed?}
-    E2 --> F2{Order Block Confirmed?}
-    F -->|Yes| G[Execute BUY at FVG Mid]
-    F2 -->|Yes| G2[Execute SELL at FVG Mid]
-    F -->|No| A
-    F2 -->|No| A
+Edit `config/settings.yaml`:
+
+```yaml
+mt5:
+  login: YOUR_ACCOUNT_NUMBER
+  password: YOUR_PASSWORD
+  server: YOUR_BROKER_SERVER
 ```
 
-### Phase 2: Trade Execution (BUY Setup)
-```
-Entry Conditions:
-✅ Bullish CHoCH confirmed on M15
-✅ Bullish Fair Value Gap identified
-✅ Price approaching FVG mid-line
-✅ Bearish Order Block above FVG
-✅ Within trading hours
-✅ No existing position
+### 3. Run the Bot
 
-Entry: FVG Mid-Line (50% level)
-Stop Loss: Below FVG low or ATR-based
-Take Profit: Order Block level or RR-based
-Position Size: Auto-calculated based on risk %
+**CLI Mode (Live Trading):**
+```bash
+python main.py
 ```
 
-### Phase 2: Trade Execution (SELL Setup)
-```
-Entry Conditions:
-✅ Bearish CHoCH confirmed on M15
-✅ Bearish Fair Value Gap identified
-✅ Price approaching FVG mid-line
-✅ Bullish Order Block below FVG
-✅ Within trading hours
-✅ No existing position
-
-Entry: FVG Mid-Line (50% level)
-Stop Loss: Above FVG high or ATR-based
-Take Profit: Order Block level or RR-based
-Position Size: Auto-calculated based on risk %
+**Web UI Mode:**
+```bash
+python main.py --ui
+# Or directly:
+streamlit run ui/app.py
 ```
 
-### Phase 3: Trade Management
-```
-Active Management (Both Directions):
-🔄 Trailing Stop Loss (50 pips) - Works for BUY and SELL
-📈 Partial Profit Taking at Order Block
-⚡ Dynamic Exit Signals
-🛡️ Maximum Risk Control (2%)
-💰 Dynamic Position Sizing based on account balance
+**Dry Run (Test Configuration):**
+```bash
+python main.py --dry-run
 ```
 
-## **SMC Indicator Configuration**
+## Included Strategies
 
-### Recommended SMC Indicator Settings:
-```
-Time Frame: M15
-Structure Period: 50
-Order Block Lookback: 20
-FVG Detection: Enabled
-CHoCH Detection: Enabled (Bullish & Bearish)
-BOS Detection: Enabled
-Liquidity Zones: Enabled
+### 1. SMC Scalper
+Smart Money Concepts based scalping strategy.
 
-Colors:
-- Bullish CHoCH: Green
-- Bearish CHoCH: Red  
-- FVG Bullish: Blue
-- FVG Bearish: Orange
-- Order Blocks Bearish: Purple
-- Order Blocks Bullish: Cyan
-```
+- **Entry:** CHoCH + FVG confluence
+- **Target:** Order Block or R:R ratio
+- **Timeframe:** M15
+- **Best for:** XAUUSD during London/NY session
 
-### Manual Verification Points:
-1. **CHoCH Confirmation**: Green arrow (bullish) or Red arrow (bearish) on chart
-2. **FVG Visibility**: Blue rectangle (bullish) or Orange rectangle (bearish)
-3. **Order Block**: Purple rectangle above FVG (buy) or Cyan below FVG (sell)
-4. **Price Action**: Clean break of structure in either direction
+### 2. Trend Break + Trauma + RSI
+Trend line breakout strategy with EMA filter.
 
-## **Advanced Settings**
+- **Entry:** Price above/below Trauma (EMA) + Trend break
+- **Exit:** RSI overbought/oversold
+- **Timeframe:** H1
+- **Best for:** Trending markets
 
-### For Conservative Trading:
-```
-LotSize: 0.01
-MaxRiskPercent: 1.0
-RiskRewardRatio: 3.0
-TrailingStopDistance: 30.0
-StopLossPips: 80.0
-```
+### 3. CRT + TBS (Candle Range Theory + Time-Based Strategy)
+Asian session range + killzone liquidity sweep strategy.
 
-### For Aggressive Trading:
-```
-LotSize: 0.05
-MaxRiskPercent: 3.0
-RiskRewardRatio: 1.5
-TrailingStopDistance: 70.0
-StopLossPips: 120.0
-```
+- **Range:** Asian Session (00:00-06:00 UTC) defines High/Low
+- **Killzones:** London (07:00-09:00) and NY (13:00-15:00)
+- **Entry:** Price sweeps beyond range, then closes back inside
+- **Exit:** Opposite end of Asian range
+- **Timeframe:** M5 entry, H1 range
+- **Best for:** XAUUSD during high-volatility sessions
 
-### High-Frequency Scalping:
-```
-CHoCH_LookbackPeriods: 30
-FVG_MinSizePips: 3
-OrderBlock_LookbackPeriods: 15
-UseTrailingStop: true
-TrailingStopDistance: 20.0
-```
+## Adding New Strategies
 
-## 📈 **Expected Performance Metrics**
+### Step 1: Create Strategy File
 
-### Backtesting Results (2024 Data):
-```
-Win Rate: 65-75%
-Average RR: 1:2.2
-Max Drawdown: 12%
-Profit Factor: 1.8
-Monthly Return: 15-25%
-Best Pair: XAUUSD M15
-```
+Create `strategies/my_strategy.py`:
 
-### Live Trading Statistics:
-```
-Avg Trades/Day: 5-12 (both BUY and SELL)
-Avg Trade Duration: 2-6 hours
-Success Rate: 70%+
-Max Consecutive Losses: 4
-Recovery Time: 2-3 days
-Trade Distribution: ~50% BUY, ~50% SELL
-```
+```python
+from core.strategy_base import StrategyBase, Signal, TradeSignal, Position
+import pandas as pd
+from typing import Optional, Dict, Any
 
-## 🛡️ **Risk Management Features**
+class MyStrategy(StrategyBase):
+    name = "My Strategy"
+    version = "1.0.0"
+    description = "My custom trading strategy"
 
-### Built-in Protections:
-- ✅ **Maximum Risk per Trade**: 2% of account
-- ✅ **Dynamic Position Sizing**: Automatically calculated based on ATR, account balance, and risk %
-- ✅ **Time-based Filters**: Avoid low-liquidity periods
-- ✅ **Trailing Stop Loss**: Lock in profits automatically for both BUY and SELL positions
-- ✅ **One Trade Rule**: Maximum 1 position at a time
-- ✅ **Friday Filter**: Avoid weekend gap risk
-- ✅ **Bidirectional Trading**: Captures both bullish and bearish opportunities
+    def initialize(self, config: Dict[str, Any]) -> None:
+        """Load strategy parameters from config."""
+        self.config = config
+        self.symbols = config.get("symbols", ["XAUUSD"])
+        self.timeframe = config.get("timeframe", "M15")
+        self.enabled = config.get("enabled", True)
 
-### Manual Overrides:
-- Emergency close all positions
-- Pause trading during news events
-- Adjust lot sizes on the fly
-- Modify RR ratios per market conditions
+        # Load your custom parameters
+        params = config.get("parameters", {})
+        self.my_param = params.get("my_param", 10)
 
-## 🔧 **Troubleshooting Guide**
+    def analyze(self, symbol: str, data: pd.DataFrame) -> Optional[TradeSignal]:
+        """
+        Analyze market data and generate trade signal.
 
-### Common Issues & Solutions:
+        Args:
+            symbol: Trading symbol (e.g., "XAUUSD")
+            data: OHLCV DataFrame with columns: time, open, high, low, close, volume
 
-**Issue 1**: EA not detecting CHoCH (Bullish or Bearish)
-```
-Solution: 
-- Verify SMC indicator is installed and running
-- Check CHoCH_LookbackPeriods setting
-- Ensure M15 timeframe is active
-- Confirm XAUUSD symbol name matches broker
-- Check both bullish and bearish CHoCH detection is enabled
+        Returns:
+            TradeSignal if entry condition met, None otherwise
+        """
+        # Your entry logic here
+        if your_buy_condition:
+            return TradeSignal(
+                signal=Signal.BUY,
+                symbol=symbol,
+                entry_price=data.iloc[-1]["close"],
+                stop_loss=stop_loss_price,
+                take_profit=take_profit_price,
+                comment="My Strategy BUY"
+            )
+
+        return None
+
+    def should_close(self, position: Position, data: pd.DataFrame) -> bool:
+        """Check if position should be closed."""
+        # Your exit logic here
+        return False
 ```
 
-**Issue 2**: No trades executing
-```
-Solution:
-- Check trading hours settings
-- Verify account has sufficient margin  
-- Confirm FVG_MinSizePips isn't too restrictive
-- Check if positions already open
+### Step 2: Create Config File
+
+Create `config/strategies/my_strategy.yaml`:
+
+```yaml
+name: "My Strategy"
+enabled: true
+description: "My custom trading strategy"
+
+symbols:
+  - XAUUSD
+
+timeframe: M15
+magic_number: 123456
+
+parameters:
+  my_param: 10
+  another_param: 2.5
+
+risk:
+  max_risk_percent: 2.0
+  lot_size: 0.01
+
+session:
+  start_hour: 8
+  end_hour: 18
+  trade_friday: false
+
+alerts:
+  telegram: true
+  discord: false
 ```
 
-**Issue 3**: Trailing stop not working
+### Step 3: Done!
+
+The bot automatically discovers and loads your strategy. Enable it via the UI or set `enabled: true` in the YAML file.
+
+## Configuration
+
+### Global Settings (`config/settings.yaml`)
+
+```yaml
+mt5:
+  login: 0
+  password: ""
+  server: ""
+  timeout: 60000
+
+risk:
+  max_risk_per_trade: 2.0    # % of balance
+  max_daily_loss: 5.0        # % daily loss limit
+  max_drawdown: 20.0         # % max drawdown
+  max_positions: 5           # Max simultaneous positions
+
+alerts:
+  telegram:
+    enabled: false
+    token: "YOUR_BOT_TOKEN"
+    chat_id: "YOUR_CHAT_ID"
+  discord:
+    enabled: false
+    webhook_url: "YOUR_WEBHOOK_URL"
+
+logging:
+  level: INFO
+  file: logs/trading_bot.log
 ```
-Solution:
-- Enable UseTrailingStop parameter
-- Check TrailingStopDistance value
-- Verify position is in profit
-- Ensure EA is running continuously
+
+## Backtesting
+
+Run backtests via the Web UI:
+
+1. Launch UI: `streamlit run ui/app.py`
+2. Go to "Backtest" page
+3. Select strategy, symbol, date range
+4. Click "Run Backtest"
+
+Or programmatically:
+
+```python
+from core.mt5_connector import MT5Connector
+from core.backtest_engine import BacktestEngine
+from strategies.smc_scalper import SMCScalper
+from datetime import datetime, timedelta
+
+mt5 = MT5Connector()
+mt5.connect()
+
+engine = BacktestEngine(mt5)
+strategy = SMCScalper()
+strategy.initialize({"symbols": ["XAUUSD"], "timeframe": "M15", "enabled": True})
+
+result = engine.run_backtest(
+    strategy=strategy,
+    symbol="XAUUSD",
+    timeframe="M15",
+    start_date=datetime.now() - timedelta(days=90),
+    end_date=datetime.now(),
+    initial_balance=10000
+)
+
+print(engine.generate_report(result))
 ```
 
-### Version Updates:
-- v1.0: Initial release with bullish-only SMC logic
-- v1.1: **Added complete sell-side logic with bearish CHoCH, bearish FVG, and bullish order blocks**
-- v1.2: **Implemented dynamic lot sizing based on risk percentage**
-- v1.3: **Enhanced trailing stop for both buy and sell positions**
-- v2.0: Multi-timeframe analysis (Planned)
-- v3.0: AI-powered entry optimization (Future)
+## Alerts Setup
 
-## ⚠️ **Important Disclaimers**
+### Telegram
 
-**High-Risk Strategy Warning:**
-- This EA trades XAUUSD which can be highly volatile
-- Gold prices can gap significantly during news events
-- Scalping requires tight spreads and fast execution
-- Past performance does not guarantee future results
+1. Create a bot via [@BotFather](https://t.me/botfather)
+2. Get your chat ID from [@userinfobot](https://t.me/userinfobot)
+3. Add to `config/settings.yaml`:
+   ```yaml
+   alerts:
+     telegram:
+       enabled: true
+       token: "YOUR_BOT_TOKEN"
+       chat_id: "YOUR_CHAT_ID"
+   ```
+
+### Discord
+
+1. Create a webhook in your Discord server (Server Settings > Integrations > Webhooks)
+2. Add to `config/settings.yaml`:
+   ```yaml
+   alerts:
+     discord:
+       enabled: true
+       webhook_url: "YOUR_WEBHOOK_URL"
+   ```
+
+## Risk Warning
+
+Trading involves significant risk of loss. This software is for educational purposes. Always:
+
+- Test on demo accounts first
+- Use conservative risk settings (1-2% per trade)
 - Never risk more than you can afford to lose
+- Past performance doesn't guarantee future results
 
-**Broker Requirements:**
-- ✅ Low spreads (preferably < 3 pips for XAUUSD)
-- ✅ Fast execution (< 50ms average)
-- ✅ No restrictions on scalping
-- ✅ Reliable connection during London/NY sessions
-- ✅ MetaTrader 5 platform support
+## Requirements
 
-## **Optimization Tips**
+- Python 3.9+
+- MetaTrader 5 terminal (Windows only for live trading)
+- MT5 account with broker
 
-### Best Trading Sessions:
-```
-London Session: 08:00-12:00 GMT (High volatility)
-NY Session: 13:00-18:00 GMT (Maximum liquidity)
-Overlap: 13:00-16:00 GMT (Premium trading window)
-```
+## Dependencies
 
-### Market Condition Filters:
-- **Trending Markets**: Increase RR ratio to 2.5:1
-- **Ranging Markets**: Reduce RR ratio to 1.5:1  
-- **High Volatility**: Widen stop losses by 20%
-- **Low Volatility**: Tighten stops and reduce lot size
+- MetaTrader5
+- pandas, numpy
+- streamlit, plotly
+- pyyaml
+- python-telegram-bot
+- requests
+- ta (technical analysis)
+- loguru
 
-### Weekly Performance Tracking:
-Monitor and adjust based on:
-- Daily win rate trends
-- Average trade duration
-- Maximum favorable excursion
-- Maximum adverse excursion
-- Profit factor by day of week
+## License
 
----
+MIT License - Use at your own risk.
 
-*This setup guide ensures optimal performance of your XAUUSD SMC Auto Scalper. Follow each step carefully for best results.*
+## Support
+
+For issues and feature requests, create an issue on GitHub.
