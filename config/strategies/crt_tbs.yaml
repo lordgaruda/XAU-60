@@ -1,0 +1,50 @@
+# CRT + TBS Strategy Configuration
+# Candle Range Theory + Time-Based Strategy
+
+name: "CRT TBS"
+enabled: true
+description: "Candle Range Theory with killzone entries and liquidity sweeps"
+
+symbols:
+  - XAUUSD
+
+timeframe: M5         # Entry timeframe
+range_timeframe: H1   # Range calculation timeframe
+magic_number: 789789
+
+parameters:
+  # Stop Loss: pips beyond the sweep wick
+  sl_pips_beyond_sweep: 10.0
+
+  # Take Profit: Use opposite end of Asian range
+  use_range_tp: true
+
+  # Fixed R:R ratio (used if use_range_tp is false)
+  fixed_rr: 2.0
+
+  # Maximum trades per killzone per day
+  max_trades_per_killzone: 1
+
+session:
+  # Asian Session Range (UTC)
+  asian:
+    start_hour: 0   # 00:00 UTC
+    end_hour: 6     # 06:00 UTC
+
+  # London Killzone (UTC)
+  london_killzone:
+    start_hour: 7   # 07:00 UTC
+    end_hour: 9     # 09:00 UTC
+
+  # New York Killzone (UTC)
+  ny_killzone:
+    start_hour: 13  # 13:00 UTC
+    end_hour: 15    # 15:00 UTC
+
+risk:
+  lot_size: 0.1
+  max_risk_percent: 2.0
+
+alerts:
+  telegram: true
+  discord: true

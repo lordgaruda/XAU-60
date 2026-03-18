@@ -1,0 +1,45 @@
+# SMC Scalper Strategy Configuration
+
+name: "SMC Scalper"
+enabled: true
+description: "Smart Money Concepts scalping with CHoCH, FVG, and Order Blocks"
+
+symbols:
+  - XAUUSD
+
+timeframe: M15
+magic_number: 789123
+
+parameters:
+  # CHoCH Detection
+  choch_lookback: 50
+
+  # Fair Value Gap
+  fvg_min_pips: 5.0
+
+  # Order Block
+  ob_lookback: 20
+
+  # Trade Management
+  risk_reward: 2.0
+  trailing_stop: true
+  trailing_pips: 50.0
+
+  # Stop Loss
+  use_atr_sl: true
+  atr_period: 14
+  atr_multiplier: 2.0
+  stop_loss_pips: 100.0  # Fallback if ATR not available
+
+risk:
+  max_risk_percent: 2.0
+  lot_size: 0.01
+
+session:
+  start_hour: 8
+  end_hour: 18
+  trade_friday: false
+
+alerts:
+  telegram: true
+  discord: true

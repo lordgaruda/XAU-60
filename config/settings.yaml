@@ -1,0 +1,47 @@
+# Global Trading Bot Settings
+
+# MetaTrader 5 Connection
+mt5:
+  path: ""  # Leave empty for default MT5 installation
+  login: 0  # Your MT5 account number
+  password: ""  # Your MT5 password
+  server: ""  # Broker server name
+  timeout: 60000  # Connection timeout in ms
+
+# Risk Management
+risk:
+  max_risk_per_trade: 2.0  # Maximum risk per trade (%)
+  max_daily_loss: 5.0  # Maximum daily loss (%)
+  max_drawdown: 20.0  # Maximum drawdown before stopping (%)
+  max_positions: 5  # Maximum simultaneous positions
+  max_positions_per_symbol: 2  # Maximum positions per symbol
+
+# Trading Settings
+trading:
+  default_lot_size: 0.01
+  default_magic_number: 123456
+  slippage: 10  # Maximum slippage in points
+  check_interval: 1  # Seconds between tick checks
+
+# Alert Settings
+alerts:
+  telegram:
+    enabled: false
+    token: ""  # Telegram bot token
+    chat_id: ""  # Telegram chat ID
+
+  discord:
+    enabled: false
+    webhook_url: ""  # Discord webhook URL
+
+# Logging
+logging:
+  level: INFO  # DEBUG, INFO, WARNING, ERROR
+  file: logs/trading_bot.log
+  rotation: "10 MB"
+  retention: "7 days"
+
+# UI Settings
+ui:
+  refresh_rate: 5  # Dashboard refresh rate in seconds
+  theme: light  # light or dark
