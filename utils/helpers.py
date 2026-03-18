@@ -1,21 +1,31 @@
 """
 Common helper functions.
 """
-import MetaTrader5 as mt5
+import platform
 from typing import Dict, Any
 
+# MT5 timeframe constants (defined locally to avoid import issues)
+TIMEFRAME_M1 = 1
+TIMEFRAME_M5 = 5
+TIMEFRAME_M15 = 15
+TIMEFRAME_M30 = 30
+TIMEFRAME_H1 = 60
+TIMEFRAME_H4 = 240
+TIMEFRAME_D1 = 1440
+TIMEFRAME_W1 = 10080
+TIMEFRAME_MN1 = 43200
 
 # Timeframe mapping
 TIMEFRAME_MAP = {
-    "M1": mt5.TIMEFRAME_M1,
-    "M5": mt5.TIMEFRAME_M5,
-    "M15": mt5.TIMEFRAME_M15,
-    "M30": mt5.TIMEFRAME_M30,
-    "H1": mt5.TIMEFRAME_H1,
-    "H4": mt5.TIMEFRAME_H4,
-    "D1": mt5.TIMEFRAME_D1,
-    "W1": mt5.TIMEFRAME_W1,
-    "MN1": mt5.TIMEFRAME_MN1,
+    "M1": TIMEFRAME_M1,
+    "M5": TIMEFRAME_M5,
+    "M15": TIMEFRAME_M15,
+    "M30": TIMEFRAME_M30,
+    "H1": TIMEFRAME_H1,
+    "H4": TIMEFRAME_H4,
+    "D1": TIMEFRAME_D1,
+    "W1": TIMEFRAME_W1,
+    "MN1": TIMEFRAME_MN1,
 }
 
 
@@ -29,7 +39,7 @@ def timeframe_to_mt5(timeframe: str) -> int:
     Returns:
         MT5 timeframe constant
     """
-    return TIMEFRAME_MAP.get(timeframe.upper(), mt5.TIMEFRAME_M15)
+    return TIMEFRAME_MAP.get(timeframe.upper(), TIMEFRAME_M15)
 
 
 def pips_to_price(symbol: str, pips: float, point: float = 0.00001) -> float:

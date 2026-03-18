@@ -2,8 +2,24 @@
 MetaTrader 5 Connection and API Wrapper.
 Handles all communication with the MT5 terminal.
 """
-import MetaTrader5 as mt5
+import platform
 import pandas as pd
+
+# Use mock MT5 on non-Windows platforms
+if platform.system() == "Windows":
+    import MetaTrader5 as mt5
+else:
+    # Mock MT5 for development on macOS/Linux
+    import sys
+    import os
+    # Import directly without going through package __init__
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "mt5_mock",
+        os.path.join(os.path.dirname(os.path.dirname(__file__)), "utils", "mt5_mock.py")
+    )
+    mt5 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mt5)
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any, Tuple
 from dataclasses import dataclass
