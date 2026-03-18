@@ -336,7 +336,9 @@ Trading involves significant risk of loss. This software is for educational purp
 
 ## License
 
-MIT License - Use at your own risk.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+**Disclaimer:** Trading involves significant risk. Use at your own risk.
 
 ## Support
 
