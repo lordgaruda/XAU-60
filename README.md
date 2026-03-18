@@ -17,8 +17,11 @@ A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web in
 ```
 ├── main.py                     # Entry point
 ├── requirements.txt            # Python dependencies
+├── .env.example               # Environment variables template
+├── .gitignore                 # Git ignore rules
+├── LICENSE                    # MIT License
 ├── config/
-│   ├── settings.yaml          # Global settings (MT5, risk, alerts)
+│   ├── settings.yaml          # Global settings (non-sensitive)
 │   └── strategies/            # Strategy configurations
 │       ├── smc_scalper.yaml
 │       ├── trend_break_trauma.yaml
@@ -49,6 +52,7 @@ A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web in
 │       ├── backtest.py        # Backtesting interface
 │       └── settings.py        # Configuration
 └── utils/
+    ├── config.py              # Environment config loader
     ├── logger.py              # Logging setup
     └── helpers.py             # Utility functions
 ```
@@ -63,16 +67,33 @@ pip install -r requirements.txt
 
 **Note:** MetaTrader5 package only works on Windows. For other platforms, use the backtesting and UI features.
 
-### 2. Configure MT5 Connection
+### 2. Configure Environment Variables
 
-Edit `config/settings.yaml`:
+Copy `.env.example` to `.env` and fill in your credentials:
 
-```yaml
-mt5:
-  login: YOUR_ACCOUNT_NUMBER
-  password: YOUR_PASSWORD
-  server: YOUR_BROKER_SERVER
+```bash
+cp .env.example .env
 ```
+
+Edit `.env` with your settings:
+
+```bash
+# MetaTrader 5
+MT5_LOGIN=your_account_number
+MT5_PASSWORD=your_password
+MT5_SERVER=YourBroker-Demo
+
+# Telegram Alerts (optional)
+TELEGRAM_ENABLED=true
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+
+# Discord Alerts (optional)
+DISCORD_ENABLED=true
+DISCORD_WEBHOOK_URL=your_webhook_url
+```
+
+**Important:** Never commit `.env` to version control!
 
 ### 3. Run the Bot
 
@@ -217,30 +238,59 @@ The bot automatically discovers and loads your strategy. Enable it via the UI or
 
 ## Configuration
 
-### Global Settings (`config/settings.yaml`)
+Configuration uses environment variables (`.env` file) for sensitive data and YAML files for non-sensitive settings.
+
+### Environment Variables (`.env`)
+
+Copy `.env.example` to `.env` and configure:
+
+```bash
+# MetaTrader 5 Connection
+MT5_LOGIN=your_account_number
+MT5_PASSWORD=your_password
+MT5_SERVER=YourBroker-Demo
+MT5_PATH=                          # Optional: path to terminal
+
+# Risk Management
+MAX_RISK_PER_TRADE=2.0
+MAX_DAILY_LOSS=5.0
+MAX_DRAWDOWN=20.0
+MAX_POSITIONS=5
+
+# Telegram Alerts
+TELEGRAM_ENABLED=false
+TELEGRAM_BOT_TOKEN=your_bot_token
+TELEGRAM_CHAT_ID=your_chat_id
+
+# Discord Alerts
+DISCORD_ENABLED=false
+DISCORD_WEBHOOK_URL=your_webhook_url
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FILE=logs/trading_bot.log
+```
+
+### YAML Settings (`config/settings.yaml`)
+
+Non-sensitive settings (environment variables take precedence):
 
 ```yaml
-mt5:
-  login: 0
-  password: ""
-  server: ""
-  timeout: 60000
-
+# Risk Management (can override via env vars)
 risk:
-  max_risk_per_trade: 2.0    # % of balance
-  max_daily_loss: 5.0        # % daily loss limit
-  max_drawdown: 20.0         # % max drawdown
-  max_positions: 5           # Max simultaneous positions
+  max_risk_per_trade: 2.0
+  max_daily_loss: 5.0
+  max_drawdown: 20.0
+  max_positions: 5
 
-alerts:
-  telegram:
-    enabled: false
-    token: "YOUR_BOT_TOKEN"
-    chat_id: "YOUR_CHAT_ID"
-  discord:
-    enabled: false
-    webhook_url: "YOUR_WEBHOOK_URL"
+# Trading Settings
+trading:
+  default_lot_size: 0.01
+  default_magic_number: 123456
+  slippage: 10
+  check_interval: 1
 
+# Logging
 logging:
   level: INFO
   file: logs/trading_bot.log

@@ -20,6 +20,7 @@ from core.strategy_loader import StrategyLoader
 from core.risk_manager import RiskManager, RiskLimits
 from core.trade_executor import TradeExecutor
 from utils.logger import setup_logger
+from utils.config import config as env_config, load_config
 
 
 class TradingBot:
@@ -39,7 +40,7 @@ class TradingBot:
         Initialize trading bot.
 
         Args:
-            config_path: Path to main configuration file
+            config_path: Path to main configuration file (used as fallback)
         """
         self.config_path = Path(config_path)
         self.config = {}
@@ -63,20 +64,43 @@ class TradingBot:
         self.running = False
 
     def load_config(self) -> bool:
-        """Load configuration file."""
+        """
+        Load configuration from environment variables and YAML file.
+        Environment variables take precedence over YAML settings.
+        """
         try:
-            if not self.config_path.exists():
-                logger.error(f"Config file not found: {self.config_path}")
-                return False
+            # Start with environment config
+            self.config = env_config.to_dict()
 
-            with open(self.config_path, "r") as f:
-                self.config = yaml.safe_load(f)
+            # Load YAML config as fallback for non-sensitive settings
+            if self.config_path.exists():
+                with open(self.config_path, "r") as f:
+                    yaml_config = yaml.safe_load(f) or {}
+
+                # Merge YAML config (env vars take precedence)
+                self._merge_config(yaml_config)
 
             logger.info("Configuration loaded successfully")
             return True
         except Exception as e:
             logger.error(f"Failed to load config: {e}")
             return False
+
+    def _merge_config(self, yaml_config: dict):
+        """
+        Merge YAML config into existing config.
+        Environment variables (already in self.config) take precedence.
+        """
+        # Only use YAML values if env vars are not set (default values)
+        mt5_yaml = yaml_config.get("mt5", {})
+        if not self.config["mt5"]["login"] and mt5_yaml.get("login"):
+            self.config["mt5"]["login"] = mt5_yaml["login"]
+        if not self.config["mt5"]["password"] and mt5_yaml.get("password"):
+            self.config["mt5"]["password"] = mt5_yaml["password"]
+        if not self.config["mt5"]["server"] and mt5_yaml.get("server"):
+            self.config["mt5"]["server"] = mt5_yaml["server"]
+        if not self.config["mt5"]["path"] and mt5_yaml.get("path"):
+            self.config["mt5"]["path"] = mt5_yaml["path"]
 
     def initialize(self) -> bool:
         """Initialize all components."""
@@ -102,7 +126,7 @@ class TradingBot:
             login=mt5_config.get("login"),
             password=mt5_config.get("password"),
             server=mt5_config.get("server"),
-            path=mt5_config.get("path"),
+            path=mt5_config.get("path") or None,
             timeout=mt5_config.get("timeout", 60000)
         ):
             logger.error("Failed to connect to MT5")
@@ -210,10 +234,25 @@ class TradingBot:
 
         print("\n=== DRY RUN - Testing Configuration ===\n")
 
+        # Show config source
+        print("[0] Configuration source:")
+        mt5_config = self.config.get("mt5", {})
+        if mt5_config.get("login"):
+            print(f"    ✓ MT5 Login: {mt5_config['login']}")
+            print(f"    ✓ MT5 Server: {mt5_config.get('server', 'Not set')}")
+        else:
+            print("    ⚠ MT5 credentials not configured")
+            print("    → Set MT5_LOGIN, MT5_PASSWORD, MT5_SERVER in .env file")
+
         # Test MT5 connection
-        print("[1] Testing MT5 connection...")
+        print("\n[1] Testing MT5 connection...")
         self.mt5 = MT5Connector()
-        if self.mt5.connect():
+        if self.mt5.connect(
+            login=mt5_config.get("login"),
+            password=mt5_config.get("password"),
+            server=mt5_config.get("server"),
+            path=mt5_config.get("path") or None
+        ):
             account = self.mt5.get_account_info()
             if account:
                 print(f"    ✓ Connected to {account.server}")
@@ -222,6 +261,7 @@ class TradingBot:
             self.mt5.disconnect()
         else:
             print("    ✗ Failed to connect to MT5")
+            print("    → Check your credentials in .env file")
             return False
 
         # Test strategy loading
@@ -235,7 +275,12 @@ class TradingBot:
 
         # Test data retrieval
         print("\n[3] Testing market data...")
-        self.mt5.connect()
+        self.mt5.connect(
+            login=mt5_config.get("login"),
+            password=mt5_config.get("password"),
+            server=mt5_config.get("server"),
+            path=mt5_config.get("path") or None
+        )
         for name, strategy in strategies.items():
             for symbol in strategy.symbols:
                 data = self.mt5.get_ohlcv(symbol, strategy.timeframe, 10)
@@ -244,6 +289,22 @@ class TradingBot:
                 else:
                     print(f"    ✗ {symbol}: Failed to get data")
         self.mt5.disconnect()
+
+        # Check alerts config
+        print("\n[4] Alert configuration:")
+        alerts = self.config.get("alerts", {})
+        telegram = alerts.get("telegram", {})
+        discord = alerts.get("discord", {})
+
+        if telegram.get("enabled"):
+            print(f"    ✓ Telegram: Enabled (Chat ID: {telegram.get('chat_id', 'Not set')})")
+        else:
+            print("    ○ Telegram: Disabled")
+
+        if discord.get("enabled"):
+            print("    ✓ Discord: Enabled")
+        else:
+            print("    ○ Discord: Disabled")
 
         print("\n=== DRY RUN COMPLETE ===\n")
         return True
@@ -255,7 +316,7 @@ def main():
     parser.add_argument(
         "--config", "-c",
         default="config/settings.yaml",
-        help="Path to configuration file"
+        help="Path to configuration file (fallback for non-sensitive settings)"
     )
     parser.add_argument(
         "--dry-run",

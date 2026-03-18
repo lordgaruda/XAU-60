@@ -11,6 +11,7 @@ pytz>=2023.3  # Timezone handling
 
 # Configuration
 pyyaml>=6.0
+python-dotenv>=1.0.0  # Environment variable loading
 
 # UI
 streamlit>=1.30.0
