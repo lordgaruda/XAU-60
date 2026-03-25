@@ -39,6 +39,17 @@ st.markdown("""
     .main .block-container {
         padding-top: 2rem;
         padding-bottom: 2rem;
+        max-width: 100%;
+    }
+
+    /* Fix column layout for metrics */
+    [data-testid="column"] {
+        overflow: visible !important;
+    }
+
+    [data-testid="stHorizontalBlock"] {
+        gap: 1rem;
+        flex-wrap: wrap;
     }
 
     /* Sidebar styling */
@@ -156,6 +167,7 @@ st.markdown("""
         padding: 1rem 1.25rem;
         border-radius: 12px;
         border: 1px solid var(--border-color);
+        overflow: visible !important;
     }
 
     [data-testid="stMetric"]:hover {
@@ -165,11 +177,34 @@ st.markdown("""
     [data-testid="stMetricLabel"] {
         color: var(--text-secondary) !important;
         font-size: 0.85rem;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
     }
 
     [data-testid="stMetricValue"] {
         color: var(--text-primary) !important;
         font-weight: 700;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        text-overflow: unset !important;
+        font-size: 1.5rem !important;
+    }
+
+    [data-testid="stMetricDelta"] {
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+
+    /* Fix metric container overflow */
+    [data-testid="stMetric"] > div {
+        overflow: visible !important;
+    }
+
+    [data-testid="stMetric"] > div > div {
+        overflow: visible !important;
+        text-overflow: unset !important;
+        white-space: nowrap !important;
     }
 
     /* Positive delta */
