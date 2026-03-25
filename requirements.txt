@@ -13,6 +13,9 @@ pytz>=2023.3  # Timezone handling
 pyyaml>=6.0
 python-dotenv>=1.0.0  # Environment variable loading
 
+# Security (for encrypted account storage)
+cryptography>=41.0.0  # Fernet encryption for MT5 credentials
+
 # UI
 streamlit>=1.30.0
 plotly>=5.18.0
