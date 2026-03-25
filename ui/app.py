@@ -403,8 +403,31 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
+def get_connection_status():
+    """Get MT5 connection status from account manager."""
+    try:
+        from core.account_manager import get_account_manager, ConnectionStatus
+        manager = get_account_manager()
+        status = manager.get_connection_status()
+        active = manager.get_active_account()
+
+        if status == ConnectionStatus.CONNECTED:
+            return "connected", active.name if active else "Connected"
+        elif status == ConnectionStatus.CONNECTING:
+            return "connecting", "Connecting..."
+        elif status == ConnectionStatus.RECONNECTING:
+            return "reconnecting", "Reconnecting..."
+        else:
+            return "disconnected", "Disconnected"
+    except Exception:
+        return "disconnected", "Not Initialized"
+
+
 def main():
     """Main application entry point."""
+    # Get connection status
+    conn_status, conn_text = get_connection_status()
+
     # Sidebar
     with st.sidebar:
         st.markdown("""
@@ -415,10 +438,10 @@ def main():
 
         st.markdown("---")
 
-        # Navigation
+        # Navigation - Updated with new pages
         page = st.radio(
             "Navigation",
-            ["Dashboard", "Strategies", "Backtest", "Settings"],
+            ["Dashboard", "Strategies", "Strategy Builder", "Backtest", "Accounts", "Settings"],
             index=0,
             key="main_navigation",
             label_visibility="collapsed"
@@ -426,24 +449,64 @@ def main():
 
         st.markdown("---")
 
-        # Status indicators
-        st.markdown("""
+        # Dynamic status indicators
+        if conn_status == "connected":
+            status_color = "#10b981"
+            status_icon = "●"
+        elif conn_status in ["connecting", "reconnecting"]:
+            status_color = "#f59e0b"
+            status_icon = "○"
+        else:
+            status_color = "#ef4444"
+            status_icon = "●"
+
+        st.markdown(f"""
         <div style="padding: 0.5rem 0;">
             <p style="margin: 0.5rem 0; font-size: 0.9rem;">
-                <span style="color: #10b981;">●</span> Bot Running
-            </p>
-            <p style="margin: 0.5rem 0; font-size: 0.9rem;">
-                <span style="color: #10b981;">●</span> MT5 Connected
+                <span style="color: {status_color};">{status_icon}</span> MT5: {conn_text}
             </p>
         </div>
         """, unsafe_allow_html=True)
+
+        # Quick account selector
+        try:
+            from core.account_manager import get_account_manager
+            manager = get_account_manager()
+            accounts = manager.list_accounts()
+
+            if accounts:
+                account_names = [f"{a.name} ({a.login})" for a in accounts]
+                active = manager.get_active_account()
+                active_idx = 0
+                if active:
+                    for i, a in enumerate(accounts):
+                        if a.id == active.id:
+                            active_idx = i
+                            break
+
+                selected = st.selectbox(
+                    "Account",
+                    account_names,
+                    index=active_idx,
+                    key="sidebar_account_select",
+                    label_visibility="collapsed"
+                )
+
+                # Switch account if changed
+                selected_idx = account_names.index(selected)
+                if accounts[selected_idx].id != (active.id if active else None):
+                    if st.button("Switch", key="sidebar_switch_btn", use_container_width=True):
+                        manager.switch_account(accounts[selected_idx].id)
+                        st.rerun()
+        except Exception:
+            pass
 
         st.markdown("---")
 
         # Version info
         st.markdown("""
         <div style="text-align: center; color: #64748b; font-size: 0.75rem;">
-            v1.0.0
+            v2.0.0 Pro
         </div>
         """, unsafe_allow_html=True)
 
@@ -454,9 +517,15 @@ def main():
     elif page == "Strategies":
         from pages.strategies import render_strategies
         render_strategies()
+    elif page == "Strategy Builder":
+        from pages.strategy_builder import render_strategy_builder
+        render_strategy_builder()
     elif page == "Backtest":
         from pages.backtest import render_backtest
         render_backtest()
+    elif page == "Accounts":
+        from pages.accounts import render_accounts
+        render_accounts()
     elif page == "Settings":
         from pages.settings import render_settings
         render_settings()
