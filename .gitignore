@@ -60,3 +60,5 @@ Thumbs.db
 # Distribution
 *.tar.gz
 *.zip
+
+.encryption_key
