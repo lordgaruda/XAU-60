@@ -17,19 +17,352 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS
+# Modern CSS styling
 st.markdown("""
 <style>
-    .stMetric {
-        background-color: #f0f2f6;
-        padding: 10px;
-        border-radius: 5px;
+    /* CSS Variables for theming */
+    :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --success: #10b981;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+        --bg-dark: #0f172a;
+        --bg-card: #1e293b;
+        --bg-card-hover: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
     }
+
+    /* Main container styling */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    }
+
+    [data-testid="stSidebar"] .stMarkdown {
+        color: #f8fafc;
+    }
+
+    /* Page header styling */
+    .page-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .page-header p {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Card styling */
+    .card {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+    }
+
+    /* Strategy card */
+    .strategy-card {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 0.5rem;
+        border-left: 4px solid var(--border-color);
+    }
+
+    .strategy-card.enabled {
+        border-left-color: var(--success);
+    }
+
+    .strategy-card.disabled {
+        border-left-color: var(--danger);
+    }
+
+    .strategy-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .strategy-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .strategy-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .strategy-timeframe {
+        background: var(--primary);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    /* Badges */
+    .badge-success {
+        background: var(--success);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-secondary {
+        background: var(--text-secondary);
+        color: var(--bg-dark);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    /* Metric cards */
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+
+    [data-testid="stMetric"]:hover {
+        border-color: var(--primary);
+    }
+
+    [data-testid="stMetricLabel"] {
+        color: var(--text-secondary) !important;
+        font-size: 0.85rem;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+    }
+
+    /* Positive delta */
+    [data-testid="stMetricDelta"] svg {
+        stroke: var(--success);
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border: none;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        transform: translateY(-1px);
+    }
+
+    .stButton > button[kind="secondary"] {
+        background: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .stButton > button[kind="secondary"]:hover {
+        border-color: var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+    }
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 0.5rem;
+        background: transparent;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: var(--bg-card);
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+
+    /* Input fields */
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox > div > div {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-primary);
+    }
+
+    .stTextInput > div > div > input:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Dataframes */
+    .stDataFrame {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* Expanders */
+    .streamlit-expanderHeader {
+        background: var(--bg-card);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    /* Info card */
+    .info-card {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-card h4 {
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .info-card ol {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--text-secondary);
+    }
+
+    .info-card li {
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card code {
+        background: var(--bg-card);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Symbol tags */
+    .symbol-tag {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-right: 0.25rem;
+    }
+
+    /* Profit/Loss colors */
     .profit {
-        color: #00c853;
+        color: var(--success) !important;
     }
+
     .loss {
-        color: #ff1744;
+        color: var(--danger) !important;
+    }
+
+    /* Dividers */
+    hr {
+        border-color: var(--border-color);
+        opacity: 0.5;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+    }
+
+    /* Status indicators */
+    .status-running {
+        color: var(--success);
+    }
+
+    .status-stopped {
+        color: var(--danger);
+    }
+
+    /* Sidebar nav items */
+    [data-testid="stSidebar"] .stRadio > label {
+        color: var(--text-primary);
+    }
+
+    /* Toggle switch */
+    .stToggle > label > div {
+        background: var(--bg-card);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -37,18 +370,47 @@ st.markdown("""
 
 def main():
     """Main application entry point."""
-    st.sidebar.title("📈 Trading Bot")
+    # Sidebar
+    with st.sidebar:
+        st.markdown("""
+        <div style="text-align: center; padding: 1rem 0;">
+            <h2 style="margin: 0; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">MT5 Trading Bot</h2>
+        </div>
+        """, unsafe_allow_html=True)
 
-    # Navigation
-    page = st.sidebar.radio(
-        "Navigation",
-        ["Dashboard", "Strategies", "Backtest", "Settings"],
-        index=0
-    )
+        st.markdown("---")
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**Status:** 🟢 Running")
-    st.sidebar.markdown("**MT5:** Connected")
+        # Navigation
+        page = st.radio(
+            "Navigation",
+            ["Dashboard", "Strategies", "Backtest", "Settings"],
+            index=0,
+            key="main_navigation",
+            label_visibility="collapsed"
+        )
+
+        st.markdown("---")
+
+        # Status indicators
+        st.markdown("""
+        <div style="padding: 0.5rem 0;">
+            <p style="margin: 0.5rem 0; font-size: 0.9rem;">
+                <span style="color: #10b981;">●</span> Bot Running
+            </p>
+            <p style="margin: 0.5rem 0; font-size: 0.9rem;">
+                <span style="color: #10b981;">●</span> MT5 Connected
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # Version info
+        st.markdown("""
+        <div style="text-align: center; color: #64748b; font-size: 0.75rem;">
+            v1.0.0
+        </div>
+        """, unsafe_allow_html=True)
 
     # Page routing
     if page == "Dashboard":

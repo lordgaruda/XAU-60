@@ -14,11 +14,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 def render_backtest():
     """Render the backtesting page."""
-    st.title("📈 Strategy Backtesting")
+    st.markdown("""
+    <div class="page-header">
+        <h1>Strategy Backtesting</h1>
+        <p>Test your strategies against historical data</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Sidebar configuration
     with st.sidebar:
-        st.subheader("Backtest Settings")
+        st.markdown("### Backtest Settings")
 
         # Load available strategies
         config_dir = Path(__file__).parent.parent.parent / "config" / "strategies"
@@ -35,46 +40,58 @@ def render_backtest():
 
         selected_strategy = st.selectbox(
             "Strategy",
-            options=list(strategies.keys()) if strategies else ["No strategies found"]
+            options=list(strategies.keys()) if strategies else ["No strategies found"],
+            key="backtest_strategy_select"
         )
 
         symbol = st.selectbox(
             "Symbol",
-            options=["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"]
+            options=["XAUUSD", "EURUSD", "GBPUSD", "USDJPY"],
+            key="backtest_symbol_select"
         )
 
         timeframe = st.selectbox(
             "Timeframe",
             options=["M1", "M5", "M15", "M30", "H1", "H4", "D1"],
-            index=2
+            index=2,
+            key="backtest_timeframe_select"
         )
 
         col1, col2 = st.columns(2)
         with col1:
             start_date = st.date_input(
                 "Start Date",
-                value=datetime.now() - timedelta(days=90)
+                value=datetime.now() - timedelta(days=90),
+                key="backtest_start_date"
             )
         with col2:
             end_date = st.date_input(
                 "End Date",
-                value=datetime.now()
+                value=datetime.now(),
+                key="backtest_end_date"
             )
 
         initial_balance = st.number_input(
             "Initial Balance ($)",
             value=10000.0,
-            step=1000.0
+            step=1000.0,
+            key="backtest_initial_balance"
         )
 
         lot_size = st.number_input(
             "Lot Size",
             value=0.1,
             step=0.01,
-            format="%.2f"
+            format="%.2f",
+            key="backtest_lot_size"
         )
 
-        run_backtest = st.button("Run Backtest", type="primary", use_container_width=True)
+        run_backtest = st.button(
+            "Run Backtest",
+            type="primary",
+            use_container_width=True,
+            key="backtest_run_button"
+        )
 
     # Main content
     if run_backtest:
@@ -87,11 +104,15 @@ def render_backtest():
 
             display_backtest_results(results)
     else:
-        st.info("Configure backtest parameters and click 'Run Backtest' to start.")
+        st.markdown("""
+        <div class="info-card">
+            <h4>Ready to Backtest</h4>
+            <p>Configure your backtest parameters in the sidebar and click <strong>Run Backtest</strong> to start.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
         # Show sample results preview
-        st.markdown("---")
-        st.subheader("Sample Results Preview")
+        st.markdown("### Sample Results Preview")
 
         results = simulate_backtest_results(initial_balance=10000, days=30)
         display_backtest_results(results)
@@ -162,12 +183,11 @@ def display_backtest_results(results: dict):
     metrics = results["metrics"]
 
     # Key metrics
-    st.subheader("Performance Summary")
+    st.markdown("### Performance Summary")
 
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
-        color = "normal" if metrics["total_profit"] >= 0 else "inverse"
         st.metric(
             "Total P&L",
             f"${metrics['total_profit']:.2f}",
@@ -189,7 +209,7 @@ def display_backtest_results(results: dict):
     st.markdown("---")
 
     # Equity curve chart
-    st.subheader("Equity Curve")
+    st.markdown("### Equity Curve")
 
     dates = pd.date_range(
         end=datetime.now(),
@@ -203,8 +223,8 @@ def display_backtest_results(results: dict):
         y=results["equity_curve"],
         mode='lines',
         fill='tozeroy',
-        line=dict(color='#00c853', width=2),
-        fillcolor='rgba(0, 200, 83, 0.1)',
+        line=dict(color='#6366f1', width=2),
+        fillcolor='rgba(99, 102, 241, 0.1)',
         name='Equity'
     ))
 
@@ -212,7 +232,7 @@ def display_backtest_results(results: dict):
     fig.add_hline(
         y=metrics["initial_balance"],
         line_dash="dash",
-        line_color="gray",
+        line_color="#64748b",
         annotation_text="Initial Balance"
     )
 
@@ -220,15 +240,20 @@ def display_backtest_results(results: dict):
         height=400,
         margin=dict(l=0, r=0, t=10, b=0),
         xaxis_title="Date",
-        yaxis_title="Equity ($)"
+        yaxis_title="Equity ($)",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis=dict(gridcolor='rgba(51, 65, 85, 0.5)'),
+        yaxis=dict(gridcolor='rgba(51, 65, 85, 0.5)'),
+        font=dict(color='#94a3b8')
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key="backtest_equity_chart")
 
     # Two column layout for detailed stats and trades
     col_left, col_right = st.columns([1, 1])
 
     with col_left:
-        st.subheader("Detailed Statistics")
+        st.markdown("### Detailed Statistics")
 
         stats_df = pd.DataFrame({
             "Metric": [
@@ -264,7 +289,7 @@ def display_backtest_results(results: dict):
         st.dataframe(stats_df, use_container_width=True, hide_index=True)
 
     with col_right:
-        st.subheader("Trade Distribution")
+        st.markdown("### Trade Distribution")
 
         # P&L distribution
         pnls = [t['pnl'] for t in results['trades']]
@@ -273,19 +298,24 @@ def display_backtest_results(results: dict):
         fig_dist.add_trace(go.Histogram(
             x=pnls,
             nbinsx=20,
-            marker_color='#2196f3'
+            marker_color='#6366f1'
         ))
         fig_dist.update_layout(
             height=300,
             margin=dict(l=0, r=0, t=10, b=0),
             xaxis_title="P&L ($)",
-            yaxis_title="Count"
+            yaxis_title="Count",
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            xaxis=dict(gridcolor='rgba(51, 65, 85, 0.5)'),
+            yaxis=dict(gridcolor='rgba(51, 65, 85, 0.5)'),
+            font=dict(color='#94a3b8')
         )
-        st.plotly_chart(fig_dist, use_container_width=True)
+        st.plotly_chart(fig_dist, use_container_width=True, key="backtest_distribution_chart")
 
     # Trade log
     st.markdown("---")
-    st.subheader("Trade Log")
+    st.markdown("### Trade Log")
 
     trades_df = pd.DataFrame(results['trades'])
     trades_df['date'] = pd.to_datetime(trades_df['date']).dt.strftime('%Y-%m-%d %H:%M')
@@ -297,9 +327,10 @@ def display_backtest_results(results: dict):
     with col1:
         csv = trades_df.to_csv(index=False)
         st.download_button(
-            "Download Trades CSV",
+            "Download CSV",
             csv,
             "backtest_trades.csv",
             "text/csv",
-            use_container_width=True
+            use_container_width=True,
+            key="backtest_download_csv"
         )
