@@ -1,16 +1,35 @@
-# MT5 Trading Bot
+# MT5 Trading Bot Pro v2.0
 
-A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web interface. Designed for fast strategy development and deployment.
+A professional-grade, modular trading bot for MetaTrader 5 with a modern Streamlit web interface. Features multi-account management, advanced risk controls, and production-ready trading strategies.
+
+## What's New in v2.0
+
+- **Multi-Account Management** - Securely manage multiple MT5 accounts with encrypted credential storage
+- **Professional Trading Dashboard** - Real-time candlestick charts, live positions, and manual trading panel
+- **Strategy Builder** - Visual strategy creation, deployment, and monitoring
+- **Advanced Trade Executor** - Trailing stops, break-even, partial closes, and order retry logic
+- **Enhanced Risk Management** - Circuit breaker, correlation exposure limits, and real-time risk monitoring
+- **Signal Quality Scoring** - Each strategy rates signals (A+, A, B, C, D) for trade confidence
+- **Improved Backtesting** - Strategy comparison, equity curves, and CSV export
 
 ## Features
 
+### Core Features
 - **Modular Strategy System** - Add new strategies by creating a Python file + YAML config
 - **Multi-Symbol Support** - Trade XAUUSD, EURUSD, GBPUSD, and more simultaneously
 - **Smart Money Concepts** - Built-in CHoCH, FVG, Order Block detection
 - **Backtesting Engine** - Test strategies on historical data with detailed metrics
-- **Risk Management** - Position sizing, daily loss limits, max drawdown protection
 - **Real-time Alerts** - Telegram and Discord notifications
-- **Web UI** - Streamlit dashboard for monitoring and configuration
+- **Web UI** - Modern Streamlit dashboard for monitoring and configuration
+
+### Advanced Features (v2.0)
+- **Encrypted Account Storage** - Fernet encryption for MT5 credentials
+- **Auto-Reconnect** - Health monitoring with automatic reconnection
+- **Circuit Breaker** - Pauses trading after consecutive losses
+- **Trailing Stops** - Automatic trailing stop management
+- **Break-Even** - Move stop loss to entry when in profit
+- **Partial Close** - Close portions of positions at targets
+- **Correlation Risk** - Limits exposure to correlated pairs
 
 ## Project Structure
 
@@ -18,27 +37,24 @@ A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web in
 ├── main.py                     # Entry point
 ├── requirements.txt            # Python dependencies
 ├── .env.example               # Environment variables template
-├── .gitignore                 # Git ignore rules
-├── LICENSE                    # MIT License
 ├── config/
-│   ├── settings.yaml          # Global settings (non-sensitive)
+│   ├── settings.yaml          # Global settings
 │   └── strategies/            # Strategy configurations
-│       ├── smc_scalper.yaml
-│       ├── trend_break_trauma.yaml
-│       └── crt_tbs.yaml
 ├── core/
 │   ├── strategy_base.py       # Abstract Strategy class
-│   ├── mt5_connector.py       # MT5 API wrapper
+│   ├── mt5_connector.py       # MT5 API wrapper with multi-account
+│   ├── account_manager.py     # Encrypted account management
+│   ├── trade_executor.py      # Advanced order execution
+│   ├── risk_manager.py        # Comprehensive risk controls
 │   ├── strategy_loader.py     # Dynamic strategy discovery
-│   ├── risk_manager.py        # Risk calculations
-│   ├── trade_executor.py      # Order execution
 │   └── backtest_engine.py     # Backtesting
 ├── strategies/
+│   ├── __init__.py            # Strategy registry
 │   ├── smc_scalper.py         # SMC Scalper strategy
 │   ├── trend_break_trauma.py  # Trend Break + RSI strategy
 │   └── crt_tbs.py             # CRT + TBS strategy
 ├── indicators/
-│   ├── common.py              # RSI, EMA, ATR, etc.
+│   ├── common.py              # RSI, EMA, ATR, MACD, etc.
 │   ├── smc_utils.py           # CHoCH, FVG, Order Blocks
 │   └── trend_utils.py         # Trend line detection
 ├── alerts/
@@ -46,10 +62,12 @@ A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web in
 │   └── discord_bot.py         # Discord webhooks
 ├── ui/
 │   ├── app.py                 # Streamlit main app
-│   └── pages/                 # UI pages
-│       ├── dashboard.py       # Live trading view
+│   └── pages/
+│       ├── dashboard.py       # Live trading dashboard
 │       ├── strategies.py      # Strategy management
+│       ├── strategy_builder.py # Visual strategy builder
 │       ├── backtest.py        # Backtesting interface
+│       ├── accounts.py        # Multi-account management
 │       └── settings.py        # Configuration
 └── utils/
     ├── config.py              # Environment config loader
@@ -65,7 +83,7 @@ A modular, high-performance trading bot for MetaTrader 5 with a Streamlit web in
 pip install -r requirements.txt
 ```
 
-**Note:** MetaTrader5 package only works on Windows. For other platforms, use the backtesting and UI features.
+**Note:** MetaTrader5 package only works on Windows. For macOS/Linux, use the mock MT5 module for development and backtesting.
 
 ### 2. Configure Environment Variables
 
@@ -78,35 +96,39 @@ cp .env.example .env
 Edit `.env` with your settings:
 
 ```bash
-# MetaTrader 5
+# MetaTrader 5 (Primary Account)
 MT5_LOGIN=your_account_number
 MT5_PASSWORD=your_password
 MT5_SERVER=YourBroker-Demo
 
-# Telegram Alerts (optional)
-TELEGRAM_ENABLED=true
+# Optional: Encryption key for account storage
+# Generate: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+ENCRYPTION_KEY=
+
+# Risk Management
+MAX_RISK_PER_TRADE=2.0
+MAX_DAILY_LOSS=5.0
+MAX_DRAWDOWN=20.0
+CIRCUIT_BREAKER_CONSECUTIVE_LOSSES=3
+
+# Alerts (optional)
+TELEGRAM_ENABLED=false
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_CHAT_ID=your_chat_id
-
-# Discord Alerts (optional)
-DISCORD_ENABLED=true
-DISCORD_WEBHOOK_URL=your_webhook_url
 ```
 
 **Important:** Never commit `.env` to version control!
 
 ### 3. Run the Bot
 
+**Web UI Mode (Recommended):**
+```bash
+streamlit run ui/app.py
+```
+
 **CLI Mode (Live Trading):**
 ```bash
 python main.py
-```
-
-**Web UI Mode:**
-```bash
-python main.py --ui
-# Or directly:
-streamlit run ui/app.py
 ```
 
 **Dry Run (Test Configuration):**
@@ -116,31 +138,198 @@ python main.py --dry-run
 
 ## Included Strategies
 
-### 1. SMC Scalper
-Smart Money Concepts based scalping strategy.
+All strategies include signal quality scoring (A+, A, B, C, D) based on multiple confirmation factors.
 
-- **Entry:** CHoCH + FVG confluence
-- **Target:** Order Block or R:R ratio
-- **Timeframe:** M15
-- **Best for:** XAUUSD during London/NY session
+### 1. SMC Scalper v2.1
+Smart Money Concepts based scalping strategy with confidence scoring.
 
-### 2. Trend Break + Trauma + RSI
-Trend line breakout strategy with EMA filter.
+| Feature | Details |
+|---------|---------|
+| **Entry** | CHoCH + FVG confluence + Order Block target |
+| **Confirmations** | MTF trend, ADX strength, RSI momentum, session timing |
+| **Exit** | Order Block target, opposing CHoCH, or R:R ratio |
+| **Timeframe** | M15 |
+| **Best for** | XAUUSD during London/NY session |
 
-- **Entry:** Price above/below Trauma (EMA) + Trend break
-- **Exit:** RSI overbought/oversold
-- **Timeframe:** H1
-- **Best for:** Trending markets
+**Quality Scoring Factors:**
+- CHoCH detected (2 pts)
+- FVG detected (2 pts)
+- Order Block valid (1 pt)
+- Trend aligned (2 pts)
+- Price in FVG zone (1 pt)
+- Session optimal (1 pt)
+- ADX filter passed (1 pt)
+- RSI filter passed (1 pt)
+- Spread acceptable (1 pt)
 
-### 3. CRT + TBS (Candle Range Theory + Time-Based Strategy)
-Asian session range + killzone liquidity sweep strategy.
+### 2. Trend Break + Trauma + RSI v2.1
+Trend line breakout strategy with EMA filter and momentum confirmation.
 
-- **Range:** Asian Session (00:00-06:00 UTC) defines High/Low
-- **Killzones:** London (07:00-09:00) and NY (13:00-15:00)
-- **Entry:** Price sweeps beyond range, then closes back inside
-- **Exit:** Opposite end of Asian range
-- **Timeframe:** M5 entry, H1 range
-- **Best for:** XAUUSD during high-volatility sessions
+| Feature | Details |
+|---------|---------|
+| **Entry** | Price above/below Trauma (EMA21) + Trend break + Displacement |
+| **Confirmations** | EMA stack (8/21/50), MACD alignment, ADX strength, volume spike |
+| **Exit** | RSI overbought/oversold or divergence detection |
+| **Timeframe** | H1 |
+| **Best for** | Trending markets |
+
+**Quality Scoring Factors:**
+- Trendline break (2 pts)
+- Price above Trauma (2 pts)
+- Breakout displacement (2 pts)
+- EMA stack aligned (1 pt)
+- MACD aligned (1 pt)
+- ADX strong trend (1 pt)
+- RSI momentum aligned (1 pt)
+- Session optimal (1 pt)
+
+### 3. CRT + TBS v2.1 (Candle Range Theory + Time-Based Strategy)
+Asian session range + killzone liquidity sweep strategy with manipulation quality scoring.
+
+| Feature | Details |
+|---------|---------|
+| **Range** | Asian Session (00:00-06:00 UTC) defines High/Low |
+| **Killzones** | London (07:00-09:00), NY (13:00-15:00), London Close (optional) |
+| **Entry** | Price sweeps beyond range, closes back inside with confirmation |
+| **Exit** | Opposite end of Asian range or time-based exit |
+| **Timeframe** | M5 entry, H1 range |
+| **Best for** | XAUUSD during high-volatility sessions |
+
+**Sweep Quality Levels:**
+- **Perfect** - Textbook manipulation with strong rejection
+- **Strong** - Clear sweep with displacement
+- **Moderate** - Decent sweep with momentum
+- **Weak** - Small sweep, quick return
+
+## UI Pages
+
+### Dashboard
+- Real-time account metrics (balance, equity, profit)
+- Interactive candlestick chart with EMA overlays
+- Live positions table with close buttons
+- Manual trading panel (Buy/Sell with SL/TP)
+
+### Strategy Builder
+- Visual strategy list with enable/disable toggles
+- Live parameter editing
+- Deploy/undeploy strategies
+- Strategy performance monitoring
+
+### Backtest
+- Single strategy backtesting
+- Strategy comparison mode
+- Equity curve visualization
+- Drawdown analysis
+- Trade distribution charts
+- CSV export
+
+### Accounts
+- Add/remove MT5 accounts
+- Encrypted credential storage
+- Quick account switching
+- Connection health monitoring
+
+### Settings
+- Risk parameters configuration
+- Alert settings
+- UI preferences
+
+## Multi-Account Management
+
+Add multiple MT5 accounts with encrypted storage:
+
+```python
+from core.account_manager import get_account_manager
+
+manager = get_account_manager()
+
+# Add account (credentials are encrypted)
+manager.add_account(
+    name="My Demo Account",
+    login=12345678,
+    password="secure_password",
+    server="Broker-Demo"
+)
+
+# Switch between accounts
+accounts = manager.list_accounts()
+manager.switch_account(accounts[0].id)
+
+# Connect to active account
+manager.connect()
+```
+
+Or use the **Accounts** page in the UI for a visual interface.
+
+## Advanced Risk Management
+
+### Position Sizing
+```python
+# Formula: lot = (balance * risk%) / (sl_pips * pip_value)
+lot_size = risk_manager.calculate_lot_size(
+    symbol="XAUUSD",
+    stop_loss_pips=50,
+    risk_percent=2.0
+)
+```
+
+### Circuit Breaker
+Automatically pauses trading after consecutive losses:
+```bash
+CIRCUIT_BREAKER_ENABLED=true
+CIRCUIT_BREAKER_CONSECUTIVE_LOSSES=3
+CIRCUIT_BREAKER_COOLDOWN_MINUTES=60
+```
+
+### Risk Limits
+```python
+from core.risk_manager import RiskLimits
+
+limits = RiskLimits(
+    max_risk_per_trade=2.0,
+    max_daily_loss=5.0,
+    max_drawdown=20.0,
+    max_positions=5,
+    max_lot_size=1.0,
+    max_correlated_exposure=3.0,
+    circuit_breaker_losses=3
+)
+```
+
+## Trade Execution Features
+
+### Trailing Stop
+```python
+from core.trade_executor import get_trade_executor, TrailingStopConfig
+
+executor = get_trade_executor()
+executor.enable_trailing_stop(
+    ticket=12345,
+    config=TrailingStopConfig(
+        activation_pips=30,
+        trailing_distance_pips=20,
+        step_pips=5
+    )
+)
+```
+
+### Break-Even
+```python
+from core.trade_executor import BreakEvenConfig
+
+executor.set_break_even(
+    ticket=12345,
+    config=BreakEvenConfig(
+        trigger_pips=20,
+        offset_pips=2
+    )
+)
+```
+
+### Partial Close
+```python
+executor.partial_close(ticket=12345, percent=50)
+```
 
 ## Adding New Strategies
 
@@ -152,6 +341,23 @@ Create `strategies/my_strategy.py`:
 from core.strategy_base import StrategyBase, Signal, TradeSignal, Position
 import pandas as pd
 from typing import Optional, Dict, Any
+from dataclasses import dataclass
+
+@dataclass
+class MyConfirmation:
+    """Track confirmations for signal quality."""
+    condition_1: bool = False
+    condition_2: bool = False
+
+    @property
+    def score(self) -> int:
+        return sum([self.condition_1 * 2, self.condition_2 * 1])
+
+    @property
+    def quality(self) -> str:
+        if self.score >= 3: return "A"
+        elif self.score >= 2: return "B"
+        else: return "C"
 
 class MyStrategy(StrategyBase):
     name = "My Strategy"
@@ -159,43 +365,36 @@ class MyStrategy(StrategyBase):
     description = "My custom trading strategy"
 
     def initialize(self, config: Dict[str, Any]) -> None:
-        """Load strategy parameters from config."""
         self.config = config
         self.symbols = config.get("symbols", ["XAUUSD"])
         self.timeframe = config.get("timeframe", "M15")
         self.enabled = config.get("enabled", True)
-
-        # Load your custom parameters
-        params = config.get("parameters", {})
-        self.my_param = params.get("my_param", 10)
+        self.min_quality = config.get("filters", {}).get("min_quality", "B")
 
     def analyze(self, symbol: str, data: pd.DataFrame) -> Optional[TradeSignal]:
-        """
-        Analyze market data and generate trade signal.
+        confirmation = MyConfirmation()
 
-        Args:
-            symbol: Trading symbol (e.g., "XAUUSD")
-            data: OHLCV DataFrame with columns: time, open, high, low, close, volume
+        # Your entry logic
+        confirmation.condition_1 = your_check_1(data)
+        confirmation.condition_2 = your_check_2(data)
 
-        Returns:
-            TradeSignal if entry condition met, None otherwise
-        """
-        # Your entry logic here
-        if your_buy_condition:
+        # Check minimum quality
+        quality_order = {"A": 3, "B": 2, "C": 1}
+        if quality_order.get(confirmation.quality, 0) < quality_order.get(self.min_quality, 2):
+            return None
+
+        if confirmation.condition_1:
             return TradeSignal(
                 signal=Signal.BUY,
                 symbol=symbol,
                 entry_price=data.iloc[-1]["close"],
                 stop_loss=stop_loss_price,
                 take_profit=take_profit_price,
-                comment="My Strategy BUY"
+                comment=f"MyStrategy_BUY_{confirmation.quality}"
             )
-
         return None
 
     def should_close(self, position: Position, data: pd.DataFrame) -> bool:
-        """Check if position should be closed."""
-        # Your exit logic here
         return False
 ```
 
@@ -214,156 +413,74 @@ symbols:
 timeframe: M15
 magic_number: 123456
 
-# Strategy-specific parameters (non-sensitive)
 parameters:
   my_param: 10
   another_param: 2.5
 
-# Risk settings for this strategy
+filters:
+  min_quality: "B"
+  use_adx: true
+  adx_threshold: 20
+
 risk:
   max_risk_percent: 2.0
   lot_size: 0.01
 
-# Trading session (hours in UTC)
 session:
   start_hour: 8
   end_hour: 18
   trade_friday: false
-
-# Enable/disable alerts for this strategy
-# (Credentials are in .env file, not here!)
-alerts:
-  telegram: true
-  discord: false
 ```
 
-**Note:** Strategy YAML files contain only non-sensitive parameters. All credentials (MT5 login, Telegram tokens, Discord webhooks) must be configured in the `.env` file.
+### Step 3: Register Strategy
 
-### Step 3: Done!
-
-The bot automatically discovers and loads your strategy. Enable it via the UI or set `enabled: true` in the YAML file.
-
-## Configuration
-
-Configuration uses environment variables (`.env` file) for sensitive data and YAML files for non-sensitive settings.
-
-### Environment Variables (`.env`)
-
-Copy `.env.example` to `.env` and configure:
-
-```bash
-# MetaTrader 5 Connection
-MT5_LOGIN=your_account_number
-MT5_PASSWORD=your_password
-MT5_SERVER=YourBroker-Demo
-MT5_PATH=                          # Optional: path to terminal
-
-# Risk Management
-MAX_RISK_PER_TRADE=2.0
-MAX_DAILY_LOSS=5.0
-MAX_DRAWDOWN=20.0
-MAX_POSITIONS=5
-
-# Telegram Alerts
-TELEGRAM_ENABLED=false
-TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_CHAT_ID=your_chat_id
-
-# Discord Alerts
-DISCORD_ENABLED=false
-DISCORD_WEBHOOK_URL=your_webhook_url
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FILE=logs/trading_bot.log
-```
-
-### YAML Settings (`config/settings.yaml`)
-
-Non-sensitive settings (environment variables take precedence):
-
-```yaml
-# Risk Management (can override via env vars)
-risk:
-  max_risk_per_trade: 2.0
-  max_daily_loss: 5.0
-  max_drawdown: 20.0
-  max_positions: 5
-
-# Trading Settings
-trading:
-  default_lot_size: 0.01
-  default_magic_number: 123456
-  slippage: 10
-  check_interval: 1
-
-# Logging
-logging:
-  level: INFO
-  file: logs/trading_bot.log
-```
-
-## Backtesting
-
-Run backtests via the Web UI:
-
-1. Launch UI: `streamlit run ui/app.py`
-2. Go to "Backtest" page
-3. Select strategy, symbol, date range
-4. Click "Run Backtest"
-
-Or programmatically:
+Add to `strategies/__init__.py`:
 
 ```python
-from core.mt5_connector import MT5Connector
-from core.backtest_engine import BacktestEngine
-from strategies.smc_scalper import SMCScalper
-from datetime import datetime, timedelta
+from .my_strategy import MyStrategy
 
-mt5 = MT5Connector()
-mt5.connect()
-
-engine = BacktestEngine(mt5)
-strategy = SMCScalper()
-strategy.initialize({"symbols": ["XAUUSD"], "timeframe": "M15", "enabled": True})
-
-result = engine.run_backtest(
-    strategy=strategy,
-    symbol="XAUUSD",
-    timeframe="M15",
-    start_date=datetime.now() - timedelta(days=90),
-    end_date=datetime.now(),
-    initial_balance=10000
-)
-
-print(engine.generate_report(result))
+STRATEGY_REGISTRY = {
+    # ... existing strategies
+    "My Strategy": MyStrategy,
+}
 ```
 
-## Alerts Setup
+## Environment Variables Reference
 
-### Telegram
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MT5_LOGIN` | MT5 account number | - |
+| `MT5_PASSWORD` | MT5 password | - |
+| `MT5_SERVER` | MT5 broker server | - |
+| `ENCRYPTION_KEY` | Fernet key for credential encryption | Auto-generated |
+| `MAX_RISK_PER_TRADE` | Max risk per trade (%) | 2.0 |
+| `MAX_DAILY_LOSS` | Max daily loss (%) | 5.0 |
+| `MAX_DRAWDOWN` | Max drawdown (%) | 20.0 |
+| `CIRCUIT_BREAKER_CONSECUTIVE_LOSSES` | Losses before pause | 3 |
+| `CIRCUIT_BREAKER_COOLDOWN_MINUTES` | Cooldown duration | 60 |
+| `TRAILING_STOP_ENABLED` | Enable trailing stops | true |
+| `BREAKEVEN_ENABLED` | Enable break-even | true |
+| `TELEGRAM_ENABLED` | Enable Telegram alerts | false |
+| `DISCORD_ENABLED` | Enable Discord alerts | false |
 
-1. Create a bot via [@BotFather](https://t.me/botfather)
-2. Get your chat ID from [@userinfobot](https://t.me/userinfobot)
-3. Add to `config/settings.yaml`:
-   ```yaml
-   alerts:
-     telegram:
-       enabled: true
-       token: "YOUR_BOT_TOKEN"
-       chat_id: "YOUR_CHAT_ID"
-   ```
+## Requirements
 
-### Discord
+- Python 3.9+
+- MetaTrader 5 terminal (Windows only for live trading)
+- MT5 account with broker
 
-1. Create a webhook in your Discord server (Server Settings > Integrations > Webhooks)
-2. Add to `config/settings.yaml`:
-   ```yaml
-   alerts:
-     discord:
-       enabled: true
-       webhook_url: "YOUR_WEBHOOK_URL"
-   ```
+## Dependencies
+
+- MetaTrader5 (Windows)
+- pandas, numpy
+- streamlit, plotly
+- cryptography (Fernet encryption)
+- pyyaml, python-dotenv
+- python-telegram-bot
+- requests
+- ta (technical analysis)
+- loguru
+- pytz
 
 ## Risk Warning
 
@@ -374,23 +491,6 @@ Trading involves significant risk of loss. This software is for educational purp
 - Never risk more than you can afford to lose
 - Past performance doesn't guarantee future results
 
-## Requirements
-
-- Python 3.9+
-- MetaTrader 5 terminal (Windows only for live trading)
-- MT5 account with broker
-
-## Dependencies
-
-- MetaTrader5
-- pandas, numpy
-- streamlit, plotly
-- pyyaml
-- python-telegram-bot
-- requests
-- ta (technical analysis)
-- loguru
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -400,3 +500,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 For issues and feature requests, create an issue on GitHub.
+
+## Changelog
+
+### v2.0.0
+- Added multi-account management with encrypted storage
+- New professional trading dashboard with live charts
+- Strategy builder page for visual strategy creation
+- Advanced trade executor (trailing stops, break-even, partial close)
+- Enhanced risk manager (circuit breaker, correlation limits)
+- Signal quality scoring for all strategies
+- Strategy comparison in backtesting
+- Cross-platform support (mock MT5 for macOS/Linux development)
